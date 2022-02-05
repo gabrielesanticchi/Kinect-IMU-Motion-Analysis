@@ -228,12 +228,12 @@ MIN_VEL = max(vel(:,AXES)); % to get same scale on XYZ acc.
 
 %% CROSS-CORRELATION BETWEEN KINECT AND SENSOR DATA 
 SHIFT = 0;
-SHIFT_KIN = 94; %best match
+SHIFT_KIN = 0; %best match 94
 
 FACTOR = 2000; %for plotting purposes
-[c_vel,lags_vel] = xcorr(vel_detrend(SHIFT+1:end,3),diff(y(SHIFT_KIN+1:end))); % cross-correlation between velocity
+[c_vel,lags_vel] = xcorr(vel_detrend(SHIFT+1:end,3),diff(y(1:end))); % cross-correlation between velocity
 [max_c_vel, idx_c_vel] = max(c_vel);
-[c_acc,lags_acc] = xcorr(acc(SHIFT+1:end,3),diff(diff(y(SHIFT_KIN+1:end)))); % cross-correlation between acceleration
+[c_acc,lags_acc] = xcorr(acc(SHIFT+1:end,3),diff(diff(y(1:end)))); % cross-correlation between acceleration
 [max_c_acc, idx_c_acc] = max(c_acc);
 
 ax1= subplot(411)
@@ -258,10 +258,11 @@ hold on
 ylim([-max_c_acc-max_c_acc/5 max_c_acc+max_c_acc/5])
 scatter(lags_acc(idx_c_acc), max_c_acc, 100,'red','filled')
 
+temp = length(diff(y(1:end)))
 ax3 = subplot(413)
 plot(vel_detrend(SHIFT+1:end,1),vel_detrend(SHIFT+1:end,3), 'Color', 'red', 'LineWidth',2)
 hold on 
-plot(time_kin(SHIFT_KIN+2:end), diff(y(SHIFT_KIN+1:end))*FACTOR, 'Color', 'blue','LineWidth',2)
+plot(acc(SHIFT_KIN+2:temp+SHIFT_KIN+1), diff(y(1:end))*FACTOR, 'Color', 'blue','LineWidth',2)
 title('VELOCITY by Kinect and sensor data')
 xlabel('time (sec)')
 ylabel('Correlation')
@@ -270,11 +271,11 @@ xticks(linspace(acc(SHIFT+1,1),acc(end,1), (length(acc(:,1))- SHIFT+1)/20))
 grid on 
 
 % scatter(lags_acc(idx_c_acc), max_c_acc, 100,'red','filled')
-
+temp = length(diff(diff(y(1:end))))
 ax4 = subplot(414)
-plot(acc(SHIFT+1:end,1),acc(SHIFT+1:end,3), 'Color', 'red', 'LineWidth',2)
+plot(acc(SHIFT+1:end,1),acc(SHIFT+1:end,3)-mean(acc(1:end,3)), 'Color', 'red', 'LineWidth',2)
 hold on 
-plot(time_kin(SHIFT_KIN+3:end),diff(diff(y(SHIFT_KIN+1:end)))*FACTOR, 'Color', 'blue','LineWidth',2)
+plot(acc(SHIFT_KIN+3:temp+SHIFT_KIN+2),diff(diff(y(1:end)))*FACTOR, 'Color', 'blue','LineWidth',2)
 title('ACCELERATION by Kinect and sensor data')
 xlabel('time (sec)')
 ylabel('Correlation')
