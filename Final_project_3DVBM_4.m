@@ -8,8 +8,7 @@ SkeletonConnectionMap = buildSkeletonConnectionMap;  % see the function
 
 % insert the filename of the IMU, images and metadata 
 load('4_accgyro_skip.mat'); 
-% load('1_colorimg_discesagrad.mat'); NON vi consiglio di
-% importarle. Provate, ma a me si è quasi bloccato il pc 
+% load('1_colorimg_discesagrad.mat');
 load('4_metadata_skip.mat');
 %% SYNCHRONIZATION OF SENSOR AND KINECT DATA 
 
@@ -83,16 +82,17 @@ MIN_ACC = min([min(acc(:,2)), min(acc(:,3)), min(acc(:,4))]); % to get same scal
 MAX_ACC = max([max(acc(:,2)), max(acc(:,3)), max(acc(:,4))]);
 
 fig = figure(1);
+set(gcf,'color','w'); %set white background 
 ax1 = subplot(321);
 plot(time_kin,z,'color','green','LineWidth',3)
-xticks(round(linspace(min(time_kin), max(time_kin), XTICKS),2)) % G: togliete se non vi piace
+xticks(round(linspace(min(time_kin), max(time_kin), XTICKS),2))
 yticks(round(linspace(min(z), max(z), YTICKS),3)) 
 grid on 
 title('Z-position (Kinect)')
 
 ax2 = subplot(322);
 plot(acc(:,1),acc(:,4),'color','green','LineWidth',3)
-xticks(round(linspace(min(acc(:,1)), max(acc(:,1)), XTICKS),2)) % G: togliete se non vi piace
+xticks(round(linspace(min(acc(:,1)), max(acc(:,1)), XTICKS),2)) 
 % yticks(round(linspace(min(acc(:,4)), max(acc(:,4)), YTICKS),2)) % relative scale 
 yticks(round(linspace(MIN_ACC, MAX_ACC, YTICKS),3))
 ylim([MIN_ACC-1 MAX_ACC+1])
@@ -108,7 +108,7 @@ title('X-position (Kinect)')
 
 ax4 =subplot(324);
 plot(acc(:,1),acc(:,2),'color','blue','LineWidth',3)
-xticks(round(linspace(min(acc(:,1)), max(acc(:,1)), XTICKS),2)) % G: togliete se non vi piace
+xticks(round(linspace(min(acc(:,1)), max(acc(:,1)), XTICKS),2)) 
 % yticks(round(linspace(min(acc(:,2)), max(acc(:,2)), YTICKS),2)) % relative scale 
 yticks(round(linspace(MIN_ACC, MAX_ACC, YTICKS),3))
 ylim([MIN_ACC-1 MAX_ACC+1])
@@ -125,7 +125,7 @@ title('Y-position (Kinect)')
 
 ax6 =subplot(326);
 plot(acc(:,1),acc(:,3),'color','red','LineWidth',3)
-xticks(round(linspace(min(acc(:,1)), max(acc(:,1)), XTICKS),2)) % G: togliete se non vi piace
+xticks(round(linspace(min(acc(:,1)), max(acc(:,1)), XTICKS),2)) 
 % yticks(round(linspace(min(acc(:,3)), max(acc(:,3)), YTICKS),2)) % relative scale 
 yticks(round(linspace(MIN_ACC, MAX_ACC, YTICKS),3))
 ylim([MIN_ACC-1 MAX_ACC+1])
@@ -156,8 +156,8 @@ FREQ_IMU_MAX = round(max(1./diff(acc(:,1))));
 FREQ_INTERP = FREQ_IMU_MAX;
 % ***********************************************************
 
-time_eq_acc = linspace(0,max(acc(:,1)),(max(acc(:,1)))*FREQ_IMU_MAX);
-time_eq_kin = linspace(0,max(time_kin),(max(time_kin))*FREQ_IMU_MAX);
+time_eq_acc = linspace(0,max(acc(:,1)),(max(acc(:,1)))*FREQ_INTERP);
+time_eq_kin = linspace(0,max(time_kin),(max(time_kin))*FREQ_INTERP);
 acc_interp = [];
 acc_interp(:,2) = interp1(acc(:,1),acc(:,2),time_eq_acc,'linear');
 acc_interp(:,3) = interp1(acc(:,1),acc(:,3),time_eq_acc,'linear');
@@ -167,11 +167,12 @@ y_interp = interp1(time_kin,y,time_eq_kin,'linear');
 z_interp = interp1(time_kin,z,time_eq_kin,'linear');
 
 figure(1)
+set(gcf,'color','w'); %set white background 
 subplot(211)
 plot(acc(:,1),acc(:,3),'color','red','LineWidth',2)
 hold on
 plot(time_eq_acc,acc_interp(:,3),'color','blue','LineWidth',1)
-xticks(round(linspace(min(acc(:,1)), max(acc(:,1)), XTICKS),2)) % G: togliete se non vi piace
+xticks(round(linspace(min(acc(:,1)), max(acc(:,1)), XTICKS),2)) 
 yticks(round(linspace(MIN_ACC, MAX_ACC, YTICKS),3))
 ylim([MIN_ACC-1 MAX_ACC+1])
 hold off
@@ -183,7 +184,7 @@ subplot(212)
 plot(time_kin,y,'color','red','LineWidth',2)
 hold on
 plot(time_eq_kin,y_interp,'color','blue','LineWidth',1)
-xticks(round(linspace(min(time_eq_kin), max(time_eq_kin), XTICKS),2)) % G: togliete se non vi piace
+xticks(round(linspace(min(time_eq_kin), max(time_eq_kin), XTICKS),2)) 
 yticks(round(linspace(min(y), max(y), YTICKS),3))
 ylim([min(y) max(y)])
 hold off
@@ -212,9 +213,9 @@ vel = cumtrapz(acc - mean(acc));
 %Secondly, remove the trend of the signal (use Detrend or filtfilt func)
 d1 = designfilt('highpassiir','FilterOrder',2, ...
     'HalfPowerFrequency',0.05,'DesignMethod','butter');
-vel_detrend = filtfilt(d1,vel);
-% vel_detrend = detrend(cumtrapz(acc - mean(acc)),5);
-
+% vel_detrend = filtfilt(d1,vel);
+vel_detrend = detrend(cumtrapz(acc - mean(acc)),5);
+% vel_detrend = vel;
 AXES = 3; % in this case, 'y' -> 3 
 % ***********************************************************
 
@@ -228,14 +229,17 @@ MIN_VEL = max(vel(:,AXES)); % to get same scale on XYZ acc.
 
 %% CROSS-CORRELATION BETWEEN KINECT AND SENSOR DATA 
 SHIFT = 0;
-SHIFT_KIN = 0; %best match 94
+SHIFT_KIN = 94; %best match 94
 
-FACTOR = 2000; %for plotting purposes
-[c_vel,lags_vel] = xcorr(vel_detrend(SHIFT+1:end,3),diff(y(1:end))); % cross-correlation between velocity
+FACTOR = 40; %for plotting purposes
+FACTOR2 = 20000; %for plotting purposes
+[c_vel,lags_vel] = xcorr(vel_detrend(SHIFT+1:end,3),diff(y(1:end))/mean(diff(acc(:,1)))); % cross-correlation between velocity
 [max_c_vel, idx_c_vel] = max(c_vel);
-[c_acc,lags_acc] = xcorr(acc(SHIFT+1:end,3),diff(diff(y(1:end)))); % cross-correlation between acceleration
+[c_acc,lags_acc] = xcorr(acc(SHIFT+1:end,3),diff(diff(y(1:end)))/mean(diff(acc(:,1)))); % cross-correlation between acceleration
 [max_c_acc, idx_c_acc] = max(c_acc);
 
+figure()
+set(gcf,'color','w'); %set white background 
 ax1= subplot(411)
 stem(lags_vel,c_vel)
 title('Cross-correlation between VELOCITY by Kinect and sensor data')
@@ -248,7 +252,7 @@ hold on
 scatter(lags_vel(idx_c_vel), max_c_vel, 100,'blue','filled')
 
 ax2 = subplot(412)
-stem(lags_acc,c_acc, 'Color', 'red')
+stem(lags_acc,c_acc, 'Color', 'magenta')
 title('Cross-correlation between ACCELERATION by Kinect and sensor data')
 xlabel('lag (samples)')
 ylabel('Correlation')
@@ -256,16 +260,16 @@ xticks(round(linspace(lags_acc(1),lags_acc(end), length(lags_acc)/20)))
 grid on 
 hold on 
 ylim([-max_c_acc-max_c_acc/5 max_c_acc+max_c_acc/5])
-scatter(lags_acc(idx_c_acc), max_c_acc, 100,'red','filled')
+scatter(lags_acc(idx_c_acc), max_c_acc, 100,'magenta','filled')
 
 temp = length(diff(y(1:end)))
 ax3 = subplot(413)
-plot(vel_detrend(SHIFT+1:end,1),vel_detrend(SHIFT+1:end,3), 'Color', 'red', 'LineWidth',2)
+plot(vel_detrend(SHIFT+1:end,1),vel_detrend(SHIFT+1:end,3)/FACTOR, 'Color', 'red', 'LineWidth',2)
 hold on 
-plot(acc(SHIFT_KIN+2:temp+SHIFT_KIN+1), diff(y(1:end))*FACTOR, 'Color', 'blue','LineWidth',2)
+plot(acc(SHIFT_KIN+2:temp+SHIFT_KIN+1), diff(y(1:end))/mean(diff(acc(:,1))), 'Color', 'black','LineWidth',1) %*FACTOR
 title('VELOCITY by Kinect and sensor data')
 xlabel('time (sec)')
-ylabel('Correlation')
+ylabel('m/s')
 legend('vel sensor','vel kin')
 xticks(linspace(acc(SHIFT+1,1),acc(end,1), (length(acc(:,1))- SHIFT+1)/20))
 grid on 
@@ -275,12 +279,13 @@ temp = length(diff(diff(y(1:end))))
 ax4 = subplot(414)
 plot(acc(SHIFT+1:end,1),acc(SHIFT+1:end,3)-mean(acc(1:end,3)), 'Color', 'red', 'LineWidth',2)
 hold on 
-plot(acc(SHIFT_KIN+3:temp+SHIFT_KIN+2),diff(diff(y(1:end)))*FACTOR, 'Color', 'blue','LineWidth',2)
+plot(acc(SHIFT_KIN+3:temp+SHIFT_KIN+2),diff(diff(y(1:end)))/(mean(diff(acc(:,1)))^2), 'Color', 'black','LineWidth',1)
 title('ACCELERATION by Kinect and sensor data')
 xlabel('time (sec)')
-ylabel('Correlation')
+ylabel('m/s^2')
 legend('acc sensor','acc kin')
 xticks(linspace(acc(SHIFT+1,1),acc(end,1), (length(acc(:,1))- SHIFT+1)/20))
+yticks(round(linspace(min(acc(1:end,3))*2,max(acc(1:end,3))*2, YTICKS/1.5),0))
 grid on 
 
 linkaxes([ax1 ax2],'x')
@@ -368,13 +373,14 @@ idx_min_peak(rem_idx) = [];
 
 YTICKS = 30;
 figure()
+set(gcf,'color','w'); %set white background 
 plot(acc(:,1),acc(:,AXES),'color','red','LineWidth',3)
 hold on
 scatter(acc(idx_max_peak,1),acc(idx_max_peak,AXES),50,'blue','filled')
 hold on 
 scatter(acc(idx_min_peak,1),acc(idx_min_peak,AXES),50,'green','filled')
 xticks(acc(FREQ_IMU+1:FREQ_IMU:length(acc(:,1)),1))
-% xticks(round(linspace(min(acc(:,1)), max(acc(:,1)), XTICKS),2)) % G: togliete se non vi piace
+% xticks(round(linspace(min(acc(:,1)), max(acc(:,1)), XTICKS),2)) 
 % yticks(round(linspace(min(acc(:,3)), max(acc(:,3)), YTICKS),2)) % relative scale 
 yticks(round(linspace(MIN_ACC, MAX_ACC, YTICKS),3))
 ylim([MIN_ACC-1 MAX_ACC+1])
@@ -396,7 +402,8 @@ FREQ_KIN = ceil(FREQ_INTERP/2.5); % sampling frequency of the KINECT
 AXES_KIN = y; 
 NUMBER_OF_STEPS = 30; %number of peak to be recognized
 % ***********************************************
-der_AXES_KIN = diff(AXES_KIN);
+der_AXES_KIN = diff(AXES_KIN)/mean(diff(acc(:,1)));
+der2_AXES_KIN = diff(der_AXES_KIN)/mean(diff(acc(:,1)));
 der_time = time_kin(2:end);
 idx = find((der_AXES_KIN < DERIVATIVE_THR));
 
@@ -428,6 +435,7 @@ idx_der_min(rem_idx) = [];
 
 % YTICKS = 100
 figure()
+set(gcf,'color','w'); %set white background 
 plot(der_time,der_AXES_KIN,'color','black','LineWidth',3)
 hold on
 scatter(der_time(idx_der_min),der_AXES_KIN(idx_der_min),50,'blue','filled')
@@ -440,6 +448,7 @@ yticks(linspace(min(der_AXES_KIN), max(der_AXES_KIN), 25))
 grid on 
 title('derivative of Y-position (Kinect)')
 xlabel('time (s)')
+ylabel('m/s')
 
 %%
 % now, find the first 2 null derivative between idx_step(i) and idx_step(i+1)
@@ -479,6 +488,7 @@ acc_time_orig = acc(idx_max_peak,1); % backup
 YTICKS = 10;
 % ***********************************************
 figure()
+set(gcf,'color','w'); %set white background 
 ax1 = subplot(231)
 plot(time_kin, AXES_KIN,'color','black','LineWidth',3)
 hold on
@@ -511,16 +521,24 @@ title('derivate of Y-position (Kinect)')
 ylabel(' m/s')
 legend('Derivative','Deriv minimum','Deriv null (skip down)','line = 0')
 
-% ax3 = subplot(233);
-% plot(time_kin(3:end), diff(diff(y)),'color','black','LineWidth',3)
-% % xticks(round(linspace(min(time_kin), max(time_kin), XTICKS),2))
-% % xticks([acc(FREQ_IMU+1:FREQ_IMU:length(acc(:,1)),1)]) % windowing 
-% xticks(acc((idx_max_peak),1)) % peak of the sensor 
-% yticks(round(linspace(min(diff(diff(y))), max(diff(diff(y))), YTICKS),3))
-% % ylim([MIN_ACC-1 MAX_ACC+1])
-% grid on 
-% title('derivative2 of Y-position (Kinect)')
-% linkaxes([ax1 ax2 ],'x')
+ax3 = subplot(233);
+plot(der_time(2:end),der2_AXES_KIN,'color','black','LineWidth',3)
+hold on
+% scatter(der_time(idx_der_min),der2_AXES_KIN(idx_der_min),50,'magenta','filled')
+hold on
+% scatter(der_time(idx_der_null),der_AXES_KIN(idx_der_null),50,'cyan','filled')
+hold on
+% plot(der_time(2:end),zeros(length(der_time(2:end)),1),'color','blue','LineWidth',1)
+% xticks(der_time(idx_der_null))
+xticks(acc(idx_min_peak,1)) 
+yticks(linspace(min(diff(der_AXES_KIN)/mean(diff(acc(:,1)))), max(diff(der_AXES_KIN)/mean(diff(acc(:,1)))), 10))
+xlim([0 max(der_time)])
+grid on 
+title('derivate^2 of Y-position (Kinect)')
+ylabel(' m/s^2')
+% legend('Acceleration K.','Deriv minimum','Deriv null (skip down)','line = 0')
+legend('Acceleration K.')
+
 
 ax5 = subplot(235)
 plot(vel(:,1),vel(:,AXES),'color','red','LineWidth',1)
@@ -561,15 +579,6 @@ ylabel(' m/s^2')
 xlabel('time (s)')
 
 linkaxes([ax1 ax2 ax3 ax5 ax6],'x')
-%% Synchronization of Kinect and Sensor Data 
-% Compute the average distance between time(idx_peak) and
-% der_time(idx_der_null), which represents the same instant; 
-% then subtract one to the others in other to get synchronized data
-% acc(idx_max_peak,1) = acc_time_orig; 
-% temp = min(length(idx_max_peak), length(idx_der_null)/2);
-% shift_in_time = acc(idx_max_peak(1:temp),1) - der_time(idx_der_null(1:2:temp*2))'; % da mettere a posto 
-% acc(:,1) =  acc(:,1) - mean(shift_in_time);
-
 %% Find the amplitude of the displacement from the acceleration and Kinect
 temp = (min(length(max_peak), length(min_peak)));
 a_acc = []; a_disp = [];
@@ -592,11 +601,13 @@ kin_baseline = mean(min_kin) + kin_disp;
 % kin_baseline = mean(max_kin) - kin_disp
 
 % Compute MAE, MSE, RMSE between peaks 
-temp =  (min(length(min_kin), length(min_peak)));
-
-MAE_kin_acc = mean((abs(min_kin(1:temp)' - min_peak_pos(1:temp))));
-MSE_kin_acc = mean((abs(min_kin(1:temp)' - min_peak_pos(1:temp))).^2);
-RMSE_kin_acc = sqrt(MSE_kin_acc);
+% temp =  (min(length(min_kin), length(min_peak)));
+% 
+% MAE_kin_acc = mean((abs(min_kin(1:temp)' - min_peak_pos(1:temp))));
+% MSE_kin_acc = mean((abs(min_kin(1:temp)' - min_peak_pos(1:temp))).^2);
+% RMSE_kin_acc = sqrt(MSE_kin_acc);
+ERROR_KIN_ACC = abs(a_disp - kin_disp);
+% ERROR_PERC_KIN_ACC = abs(a_disp - kin_disp)*100;
 
 %% ANALYSIS OF KINECT DATA - 4 
 idx = min(idx_der_null):max(idx_der_null);
@@ -609,6 +620,8 @@ Y_GROUND_TRUTH = amplitude_ground_thruth*sin(2*pi*f_acc*time_ground_thruth) + ki
 Z_GROUND_TRUTH = zeros(length(time_ground_thruth),1) + 3.00; % distance from the kinect
 X_GROUND_TRUTH = zeros(length(time_ground_thruth),1) + mean(x(idx)); % consider offset 
 
+figure()
+set(gcf,'color','w'); %set white background 
 ax1 = subplot(311);
 plot(time_ground_thruth, Y_GROUND_TRUTH,'LineWidth',2,'Color','red')
 hold all 
@@ -619,7 +632,7 @@ xticks(time_kin(idx_der_null(1:end)))
 grid on
 legend('Y GROUND THRUTH(accel data)','Kinect data')
 ylabel('Meters (m)')
-title([ 'MAE: ' ,num2str(MAE_kin_acc), ', MSE: ',num2str(MSE_kin_acc), ', RMSE: ', num2str(RMSE_kin_acc) , ...
+title([ 'ERROR: ' ,num2str(ERROR_KIN_ACC), 'm , ERROR (%): ',num2str(ERROR_KIN_ACC*100),  ...
         ';                      Ideal f_S: ' ,num2str(f_ideal), ...
         ',    Sens f_S: ' ,num2str(f_acc), ...
         ',    Kin f_S: ' ,num2str(f_kin) ])
@@ -651,29 +664,4 @@ legend('X GROUND THRUTH(const distance)','Kinect data')
 ylabel('Meters (m)')
 xlabel('Seconds (s)')
 linkaxes([ax1  ax2  ax3 ],'x')
-
-
-%% DA FARE: 
-% 0. sincronizzare acc e position_kinect. C'è disponibile anche gyro se
-% serve, ma non so 
-%     -> OK  GABRI
-% 1. Fare integrale dell'accelerazione sensor (cumtrapz), ma prima
-% necessario sottrare mean(acc) dal segnale. Ci sarà sempre e comunque
-% deriva, da togliere con detrend(1) o filtro passa-alto (filtfilt) 
-%     -> OK  GABRI
-% 1b. Per ricavare MAE, MSE, RMSE devo essere sicuro che i due segnali
-% siano sincronizzati, altrimenti non ha senso farlo picco-a-picco 
-%     -> OK  GABRI
-% 1c. Confrontare quindi l'integrale del acc-sensor con la derivata della
-% posizione kinect 
-%     -> OK  GABRI
-% 1d. Per sincronizzarli: xcor(X,Y, 'option', 'unbiased')
-%     -> OK  GABRI
-
-% 2. Omino che si muove, 
-% 3. Se omino funziona, mettere grafico xyz nella stessa figure con la posizione istante per istante
-
-% 4. Fare un ragionamento simile per la scala 
-
-
 
