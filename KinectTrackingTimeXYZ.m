@@ -1,4 +1,12 @@
 function   [frames_bt,time_m,x,y,z]  = KinectTrackingTimeXYZ(metadata,y_position_ground,joint)
+
+% ''''
+% Authors
+    % Antonia Lopreside <antonia.lopreside@mail.polimi.it>
+    % Gabriele Santicchi <gabriele.santicchi@mail.polimi.it>
+    % Davide Matichecchia <davide.matichecchia@mail.polimi.it>
+% ''''
+
 %KinectTrackingTimeXYZ.m The function KinectTrackingTimeXYZ, from the metadata of a 
 % Kinect acquisition, returns meaningful information about the x,y,z
 % position of a joint 
@@ -12,12 +20,6 @@ function   [frames_bt,time_m,x,y,z]  = KinectTrackingTimeXYZ(metadata,y_position
 %       time: array of time intervals (s) wrt to the frames_bt(1) data
 %       x,y,z: joint position in (m)
 
-% ''''
-% Authors
-    % Antonia Lopreside <antonia.lopreside@mail.polimi.it>
-    % Gabriele Santicchi <gabriele.santicchi@mail.polimi.it>
-    % Davide Matichecchia <davide.matichecchia@mail.polimi.it>
-% ''''
 y_position_ground = abs(y_position_ground); 
 abs_time = zeros(length(metadata),3);
 %     idx_bt = zeros(length(metadata),1); %keep track of the body index frame-by-frame 
