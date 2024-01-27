@@ -36,9 +36,9 @@ For detailed instructions on each step, refer to the respective documentation fi
 #### Visual Representations:
 Below are visual representations from our tests:
 
-<p float="left">
-  <img src="results/skip.gif" alt="GIF of Periodic Exercises" width="49%" />
-  <img src="results/raw_data.png" alt="Static Image from Exercise Data" width="49%" />
+<p>
+  <img src="results/skip.gif" alt="GIF of Periodic Exercises" width="40%" style="display: inline-block; margin-right: 2%;" />
+  <img src="results/raw_data.png" alt="Static Image from Exercise Data" width="50%" style="display: inline-block;" />
 </p>
 
 - The GIF illustrates the joint displacement during a periodic skip excercise, recorded by Kinect v2. The steps frequency was monitored using a Metronome app on a smartphone.
